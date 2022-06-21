@@ -8,7 +8,7 @@ abstract class PosthogPlatform {
   /// register themselves.
   ///
   /// Defaults to [PosthogMethodChannel]
-  static PosthogPlatform instance = PosthogMethodChannel();
+  static PosthogPlatform createNewInstance() => PosthogMethodChannel();
 
   Future<void> init({
     required String writeKey,
