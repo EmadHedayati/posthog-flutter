@@ -69,8 +69,8 @@ static PHGPostHog *_posthog;
   @try {
     NSString *writeKey = call.arguments[@"writeKey"];
     NSString *posthogHost = call.arguments[@"posthogHost"];
-    BOOL *captureApplicationLifecycleEvents = call.arguments[@"captureApplicationLifecycleEvents"];
-    BOOL *debug = call.arguments[@"debug"];
+    BOOL captureApplicationLifecycleEvents = call.arguments[@"captureApplicationLifecycleEvents"];
+    BOOL debug = call.arguments[@"debug"];
 
     PHGPostHogConfiguration *configuration = [PHGPostHogConfiguration configurationWithApiKey:writeKey host:posthogHost];
 
@@ -138,7 +138,7 @@ static PHGPostHog *_posthog;
 
     configuration.captureApplicationLifecycleEvents = captureApplicationLifecycleEvents;
 
-    _posthog = [PHGPostHog initWithConfiguration:configuration];
+    _posthog = [[PHGPostHog alloc] initWithConfiguration:configuration];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -154,7 +154,7 @@ static PHGPostHog *_posthog;
     NSString *userId = call.arguments[@"userId"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog _posthog] identify: userId
+    [_posthog identify: userId
                       properties: properties
                      options: options];
     result([NSNumber numberWithBool:YES]);
@@ -172,7 +172,7 @@ static PHGPostHog *_posthog;
     NSString *eventName = call.arguments[@"eventName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog _posthog] capture: eventName
+    [_posthog capture: eventName
                     properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -186,7 +186,7 @@ static PHGPostHog *_posthog;
     NSString *screenName = call.arguments[@"screenName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog _posthog] screen: screenName
+    [_posthog screen: screenName
                   properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -199,7 +199,7 @@ static PHGPostHog *_posthog;
   @try {
     NSString *alias = call.arguments[@"alias"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog _posthog] alias: alias];
+    [_posthog alias: alias];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -209,7 +209,7 @@ static PHGPostHog *_posthog;
 
 - (void)anonymousId:(FlutterResult)result {
   @try {
-    NSString *anonymousId = [[PHGPostHog _posthog] getAnonymousId];
+    NSString *anonymousId = [_posthog getAnonymousId];
     result(anonymousId);
   }
   @catch (NSException *exception) {
@@ -219,7 +219,7 @@ static PHGPostHog *_posthog;
 
 - (void)reset:(FlutterResult)result {
   @try {
-    [[PHGPostHog _posthog] reset];
+    [_posthog reset];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -229,7 +229,7 @@ static PHGPostHog *_posthog;
 
 - (void)disable:(FlutterResult)result {
   @try {
-    [[PHGPostHog _posthog] disable];
+    [_posthog disable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -239,7 +239,7 @@ static PHGPostHog *_posthog;
 
 - (void)enable:(FlutterResult)result {
   @try {
-    [[PHGPostHog _posthog] enable];
+    [_posthog enable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {

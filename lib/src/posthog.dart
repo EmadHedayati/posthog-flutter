@@ -102,8 +102,9 @@ class Posthog {
 
   Future<void> debug(bool enabled) {
     if (Platform.isAndroid) {
-      throw Exception('Debug flag cannot be dynamically set on Android.\n'
+      print('Debug flag cannot be dynamically set on Android.\n'
           'Add to AndroidManifest and avoid calling this method when Platform.isAndroid.');
+      return Future.value();
     }
 
     return _posthog.debug(enabled);

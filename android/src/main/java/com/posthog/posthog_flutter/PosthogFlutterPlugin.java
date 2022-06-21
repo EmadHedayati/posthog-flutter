@@ -34,7 +34,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   private Context applicationContext;
   private MethodChannel methodChannel;
-  private Posthog posthog;
+  private PostHog posthog;
 
   static HashMap<String, Object> appendToContextMiddleware;
 
