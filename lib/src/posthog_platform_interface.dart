@@ -10,6 +10,15 @@ abstract class PosthogPlatform {
   /// Defaults to [PosthogMethodChannel]
   static PosthogPlatform instance = PosthogMethodChannel();
 
+  Future<void> init({
+    required String writeKey,
+    required String posthogHost,
+    bool captureApplicationLifecycleEvents = false,
+    bool debug = false,
+  }) {
+    throw UnimplementedError('init() has not been implemented.');
+  }
+
   Future<void> identify({
     required userId,
     Map<String, dynamic>? properties,

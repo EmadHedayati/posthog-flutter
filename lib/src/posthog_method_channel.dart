@@ -5,6 +5,24 @@ import 'package:posthog_flutter/src/posthog_platform_interface.dart';
 const MethodChannel _channel = MethodChannel('posthogflutter');
 
 class PosthogMethodChannel extends PosthogPlatform {
+  Future<void> init({
+    required String writeKey,
+    required String posthogHost,
+    bool captureApplicationLifecycleEvents = false,
+    bool debug = false,
+  }) async {
+    try {
+      await _channel.invokeMethod('init', {
+        'writeKey': writeKey,
+        'posthogHost': posthogHost,
+        'captureApplicationLifecycleEvents': captureApplicationLifecycleEvents,
+        'debug': debug,
+      });
+    } on PlatformException catch (exception) {
+      print(exception);
+    }
+  }
+
   Future<void> identify({
     required userId,
     Map<String, dynamic>? properties,

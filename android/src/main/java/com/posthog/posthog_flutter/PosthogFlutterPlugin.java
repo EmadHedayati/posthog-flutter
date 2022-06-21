@@ -34,6 +34,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   private Context applicationContext;
   private MethodChannel methodChannel;
+  private Posthog posthog;
 
   static HashMap<String, Object> appendToContextMiddleware;
 
@@ -53,61 +54,6 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       methodChannel = new MethodChannel(messenger, "posthogflutter");
       this.applicationContext = applicationContext;
 
-      ApplicationInfo ai = applicationContext.getPackageManager()
-        .getApplicationInfo(applicationContext.getPackageName(), PackageManager.GET_META_DATA);
-
-      Bundle bundle = ai.metaData;
-
-      String writeKey = bundle.getString("com.posthog.posthog.API_KEY");
-      String posthogHost = bundle.getString("com.posthog.posthog.POSTHOG_HOST");
-      Boolean captureApplicationLifecycleEvents = bundle.getBoolean("com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS");
-      Boolean debug = bundle.getBoolean("com.posthog.posthog.DEBUG", false);
-
-      PostHog.Builder posthogBuilder = new PostHog.Builder(applicationContext, writeKey, posthogHost);
-      if (captureApplicationLifecycleEvents) {
-        // Enable this to record certain application events automatically
-        posthogBuilder.captureApplicationLifecycleEvents();
-      }
-
-      if (debug) {
-        posthogBuilder.logLevel(LogLevel.DEBUG);
-      }
-
-      // Here we build a middleware that just appends data to the current context
-      // using the [deepMerge] strategy.
-      posthogBuilder.middleware(
-        new Middleware() {
-          @Override
-          public void intercept(Chain chain) {
-            try {
-              if (appendToContextMiddleware == null) {
-                chain.proceed(chain.payload());
-                return;
-              }
-
-              BasePayload payload = chain.payload();
-              BasePayload newPayload = payload.toBuilder()
-                .context(appendToContextMiddleware)
-                .build();
-
-              chain.proceed(newPayload);
-            } catch (Exception e) {
-              Log.e("PosthogFlutter", e.getMessage());
-              chain.proceed(chain.payload());
-            }
-          }
-        }
-      );
-
-      // Set the initialized instance as globally accessible.
-      // It may throw an exception if we are trying to re-register a singleton PostHog instance.
-      // This state may happen after the app is popped (back button until the app closes)
-      // and opened again from the TaskManager.
-      try {
-        PostHog.setSingletonInstance(posthogBuilder.build());
-      } catch (IllegalStateException e) {
-        Log.w("PosthogFlutter", e.getMessage());
-      }
       // register the channel to receive calls
       methodChannel.setMethodCallHandler(this);
     } catch (Exception e) {
@@ -120,7 +66,9 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-    if(call.method.equals("identify")) {
+    if (call.method.equals("init")) {
+      this.init(call, result);
+    } else if (call.method.equals("identify")) {
       this.identify(call, result);
     } else if (call.method.equals("capture")) {
       this.capture(call, result);
@@ -140,6 +88,56 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       this.enable(call, result);
     } else {
       result.notImplemented();
+    }
+  }
+
+  private void init(MethodCall call, Result result) {
+    try {
+      String writeKey = call.argument("writeKey");
+      String posthogHost = call.argument("posthogHost");
+      Boolean captureApplicationLifecycleEvents = call.argument("captureApplicationLifecycleEvents");
+      Boolean debug = call.argument("debug");
+
+      PostHog.Builder posthogBuilder = new PostHog.Builder(applicationContext, writeKey, posthogHost);
+      if (captureApplicationLifecycleEvents) {
+        // Enable this to record certain application events automatically
+        posthogBuilder.captureApplicationLifecycleEvents();
+      }
+
+      if (debug) {
+        posthogBuilder.logLevel(LogLevel.DEBUG);
+      }
+
+      // Here we build a middleware that just appends data to the current context
+      // using the [deepMerge] strategy.
+      posthogBuilder.middleware(
+              new Middleware() {
+                @Override
+                public void intercept(Chain chain) {
+                  try {
+                    if (appendToContextMiddleware == null) {
+                      chain.proceed(chain.payload());
+                      return;
+                    }
+
+                    BasePayload payload = chain.payload();
+                    BasePayload newPayload = payload.toBuilder()
+                            .context(appendToContextMiddleware)
+                            .build();
+
+                    chain.proceed(newPayload);
+                  } catch (Exception e) {
+                    Log.e("PosthogFlutter", e.getMessage());
+                    chain.proceed(chain.payload());
+                  }
+                }
+              }
+      );
+
+      this.posthog = posthogBuilder.build();
+      result.success(true);
+    } catch (Exception e) {
+      result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
     }
   }
 
@@ -169,7 +167,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    PostHog.with(this.applicationContext).identify(userId, properties, options);
+    this.posthog.identify(userId, properties, options);
   }
 
   private void capture(MethodCall call, Result result) {
@@ -198,7 +196,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    PostHog.with(this.applicationContext).capture(eventName, properties, options);
+    this.posthog.capture(eventName, properties, options);
   }
 
   private void screen(MethodCall call, Result result) {
@@ -227,7 +225,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    PostHog.with(this.applicationContext).screen(screenName, properties, options);
+    this.posthog.screen(screenName, properties, options);
   }
 
   private void alias(MethodCall call, Result result) {
@@ -235,7 +233,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       String alias = call.argument("alias");
       HashMap<String, Object> optionsData = call.argument("options");
       Options options = this.buildOptions(optionsData);
-      PostHog.with(this.applicationContext).alias(alias, options);
+      this.posthog.alias(alias, options);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -244,7 +242,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   private void anonymousId(Result result) {
     try {
-      String anonymousId = PostHog.with(this.applicationContext).getAnonymousId();
+      String anonymousId = this.posthog.getAnonymousId();
       result.success(anonymousId);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -253,7 +251,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   private void reset(Result result) {
     try {
-      PostHog.with(this.applicationContext).reset();
+      this.posthog.reset();
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -273,7 +271,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   // Instead, we use optOut as a proxy to achieve the same result.
   private void enable(MethodCall call, Result result) {
     try {
-      PostHog.with(this.applicationContext).optOut(false);
+      this.posthog.optOut(false);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -284,7 +282,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   // Instead, we use optOut as a proxy to achieve the same result.
   private void disable(MethodCall call, Result result) {
     try {
-      PostHog.with(this.applicationContext).optOut(true);
+      this.posthog.optOut(true);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);

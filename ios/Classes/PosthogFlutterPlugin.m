@@ -7,14 +7,71 @@
 @implementation PosthogFlutterPlugin
 // Contents to be appended to the context
 static NSDictionary *_appendToContextMiddleware;
+static PHGPostHog *_posthog;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   @try {
-    NSString *path = [[NSBundle mainBundle] pathForResource: @"Info" ofType: @"plist"];
-    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile: path];
-    NSString *writeKey = [dict objectForKey: @"com.posthog.posthog.API_KEY"];
-    NSString *posthogHost = [dict objectForKey: @"com.posthog.posthog.POSTHOG_HOST"];
-    BOOL captureApplicationLifecycleEvents = [[dict objectForKey: @"com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS"] boolValue];
+    FlutterMethodChannel* channel = [FlutterMethodChannel
+      methodChannelWithName:@"posthogflutter"
+      binaryMessenger:[registrar messenger]];
+    PosthogFlutterPlugin* instance = [[PosthogFlutterPlugin alloc] init];
+    [registrar addMethodCallDelegate:instance channel:channel];
+  }
+  @catch (NSException *exception) {
+    NSLog(@"%@", [exception reason]);
+  }
+}
+
+- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+  if ([@"init" isEqualToString:call.method]) {
+    [self init:call result:result];
+  } else if ([@"identify" isEqualToString:call.method]) {
+    [self identify:call result:result];
+  } else if ([@"capture" isEqualToString:call.method]) {
+    [self capture:call result:result];
+  } else if ([@"screen" isEqualToString:call.method]) {
+    [self screen:call result:result];
+  } else if ([@"alias" isEqualToString:call.method]) {
+    [self alias:call result:result];
+  } else if ([@"getAnonymousId" isEqualToString:call.method]) {
+    [self anonymousId:result];
+  } else if ([@"reset" isEqualToString:call.method]) {
+    [self reset:result];
+  } else if ([@"disable" isEqualToString:call.method]) {
+    [self disable:result];
+  } else if ([@"enable" isEqualToString:call.method]) {
+    [self enable:result];
+  } else if ([@"debug" isEqualToString:call.method]) {
+    [self debug:call result:result];
+  } else if ([@"setContext" isEqualToString:call.method]) {
+    [self setContext:call result:result];
+  } else {
+    result(FlutterMethodNotImplemented);
+  }
+}
+
+- (void)setContext:(FlutterMethodCall*)call result:(FlutterResult)result {
+  @try {
+    NSDictionary *context = call.arguments[@"context"];
+    _appendToContextMiddleware = context;
+    result([NSNumber numberWithBool:YES]);
+  }
+  @catch (NSException *exception) {
+    result([FlutterError
+      errorWithCode:@"PosthogFlutterException"
+      message:[exception reason]
+      details: nil]);
+  }
+
+}
+
+- (void)init:(FlutterMethodCall*)call result:(FlutterResult)result {
+  @try {
+    NSString *writeKey = call.arguments[@"writeKey"];
+    NSString *posthogHost = call.arguments[@"posthogHost"];
+    BOOL *captureApplicationLifecycleEvents = call.arguments[@"captureApplicationLifecycleEvents"];
+    BOOL *debug = call.arguments[@"debug"];
+
     PHGPostHogConfiguration *configuration = [PHGPostHogConfiguration configurationWithApiKey:writeKey host:posthogHost];
 
     // This middleware is responsible for manipulating only the context part of the request,
@@ -81,48 +138,7 @@ static NSDictionary *_appendToContextMiddleware;
 
     configuration.captureApplicationLifecycleEvents = captureApplicationLifecycleEvents;
 
-    [PHGPostHog setupWithConfiguration:configuration];
-    FlutterMethodChannel* channel = [FlutterMethodChannel
-      methodChannelWithName:@"posthogflutter"
-      binaryMessenger:[registrar messenger]];
-    PosthogFlutterPlugin* instance = [[PosthogFlutterPlugin alloc] init];
-    [registrar addMethodCallDelegate:instance channel:channel];
-  }
-  @catch (NSException *exception) {
-    NSLog(@"%@", [exception reason]);
-  }
-}
-
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"identify" isEqualToString:call.method]) {
-    [self identify:call result:result];
-  } else if ([@"capture" isEqualToString:call.method]) {
-    [self capture:call result:result];
-  } else if ([@"screen" isEqualToString:call.method]) {
-    [self screen:call result:result];
-  } else if ([@"alias" isEqualToString:call.method]) {
-    [self alias:call result:result];
-  } else if ([@"getAnonymousId" isEqualToString:call.method]) {
-    [self anonymousId:result];
-  } else if ([@"reset" isEqualToString:call.method]) {
-    [self reset:result];
-  } else if ([@"disable" isEqualToString:call.method]) {
-    [self disable:result];
-  } else if ([@"enable" isEqualToString:call.method]) {
-    [self enable:result];
-  } else if ([@"debug" isEqualToString:call.method]) {
-    [self debug:call result:result];
-  } else if ([@"setContext" isEqualToString:call.method]) {
-    [self setContext:call result:result];
-  } else {
-    result(FlutterMethodNotImplemented);
-  }
-}
-
-- (void)setContext:(FlutterMethodCall*)call result:(FlutterResult)result {
-  @try {
-    NSDictionary *context = call.arguments[@"context"];
-    _appendToContextMiddleware = context;
+    _posthog = [PHGPostHog initWithConfiguration:configuration];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -131,7 +147,6 @@ static NSDictionary *_appendToContextMiddleware;
       message:[exception reason]
       details: nil]);
   }
-
 }
 
 - (void)identify:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -139,8 +154,8 @@ static NSDictionary *_appendToContextMiddleware;
     NSString *userId = call.arguments[@"userId"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog sharedPostHog] identify: userId
-                      properties: properties 
+    [[PHGPostHog _posthog] identify: userId
+                      properties: properties
                      options: options];
     result([NSNumber numberWithBool:YES]);
   }
@@ -157,7 +172,7 @@ static NSDictionary *_appendToContextMiddleware;
     NSString *eventName = call.arguments[@"eventName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog sharedPostHog] capture: eventName
+    [[PHGPostHog _posthog] capture: eventName
                     properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -171,7 +186,7 @@ static NSDictionary *_appendToContextMiddleware;
     NSString *screenName = call.arguments[@"screenName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog sharedPostHog] screen: screenName
+    [[PHGPostHog _posthog] screen: screenName
                   properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -184,7 +199,7 @@ static NSDictionary *_appendToContextMiddleware;
   @try {
     NSString *alias = call.arguments[@"alias"];
     NSDictionary *options = call.arguments[@"options"];
-    [[PHGPostHog sharedPostHog] alias: alias];
+    [[PHGPostHog _posthog] alias: alias];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -194,7 +209,7 @@ static NSDictionary *_appendToContextMiddleware;
 
 - (void)anonymousId:(FlutterResult)result {
   @try {
-    NSString *anonymousId = [[PHGPostHog sharedPostHog] getAnonymousId];
+    NSString *anonymousId = [[PHGPostHog _posthog] getAnonymousId];
     result(anonymousId);
   }
   @catch (NSException *exception) {
@@ -204,7 +219,7 @@ static NSDictionary *_appendToContextMiddleware;
 
 - (void)reset:(FlutterResult)result {
   @try {
-    [[PHGPostHog sharedPostHog] reset];
+    [[PHGPostHog _posthog] reset];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -214,7 +229,7 @@ static NSDictionary *_appendToContextMiddleware;
 
 - (void)disable:(FlutterResult)result {
   @try {
-    [[PHGPostHog sharedPostHog] disable];
+    [[PHGPostHog _posthog] disable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -224,7 +239,7 @@ static NSDictionary *_appendToContextMiddleware;
 
 - (void)enable:(FlutterResult)result {
   @try {
-    [[PHGPostHog sharedPostHog] enable];
+    [[PHGPostHog _posthog] enable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {

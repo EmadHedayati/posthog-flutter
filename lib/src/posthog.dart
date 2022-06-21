@@ -16,6 +16,20 @@ class Posthog {
 
   String? currentScreen;
 
+  Future<void> init({
+    required String writeKey,
+    required String posthogHost,
+    bool captureApplicationLifecycleEvents = false,
+    bool debug = false,
+  }) {
+    return _posthog.init(
+      writeKey: writeKey,
+      posthogHost: posthogHost,
+      captureApplicationLifecycleEvents: captureApplicationLifecycleEvents,
+      debug: debug,
+    );
+  }
+
   Future<void> identify({
     required userId,
     Map<String, dynamic>? properties,
