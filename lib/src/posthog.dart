@@ -3,19 +3,26 @@ import 'dart:io';
 import 'package:posthog_flutter/src/posthog_platform_interface.dart';
 
 export 'package:posthog_flutter/src/posthog_default_options.dart';
-export 'package:posthog_flutter/src/posthog_observer.dart';
 
 class Posthog {
-  static Map<String, PosthogPlatform>? _instances;
+  static Map<String, Posthog>? _instances;
 
-  late String _instanceName;
+  late PosthogPlatform _posthog;
 
-  static PosthogPlatform getInstance({String instanceName = '\$default_instance'}) {
+  factory Posthog() {
+    return getInstance();
+  }
+
+  Posthog._internal(PosthogPlatform posthogPlatform) {
+    this._posthog = posthogPlatform;
+  }
+
+  static Posthog getInstance({String instanceName = '\$default_instance'}) {
     if (_instances == null) {
-      _instances = <String, PosthogPlatform>{};
+      _instances = <String, Posthog>{};
     }
 
-    return _instances!.putIfAbsent(instanceName, () => PosthogPlatform.createNewInstance());
+    return _instances!.putIfAbsent(instanceName, () => Posthog._internal(PosthogPlatform.createNewInstance()));
   }
 
   String? currentScreen;
@@ -26,7 +33,7 @@ class Posthog {
     bool captureApplicationLifecycleEvents = false,
     bool debug = false,
   }) {
-    return getInstance(instanceName: _instanceName).init(
+    return _posthog.init(
       writeKey: writeKey,
       posthogHost: posthogHost,
       captureApplicationLifecycleEvents: captureApplicationLifecycleEvents,
@@ -39,7 +46,7 @@ class Posthog {
     Map<String, dynamic>? properties,
     Map<String, dynamic>? options,
   }) {
-    return getInstance(instanceName: _instanceName).identify(
+    return _posthog.identify(
       userId: userId,
       properties: properties,
       options: options,
@@ -54,7 +61,7 @@ class Posthog {
     if (properties != null && !properties.containsKey('\$screen_name') && this.currentScreen != null) {
       properties['\$screen_name'] = this.currentScreen;
     }
-    return getInstance(instanceName: _instanceName).capture(
+    return _posthog.capture(
       eventName: eventName,
       properties: properties,
       options: options,
@@ -69,7 +76,7 @@ class Posthog {
     if (screenName != '/') {
       this.currentScreen = screenName;
     }
-    return getInstance(instanceName: _instanceName).screen(
+    return _posthog.screen(
       screenName: screenName,
       properties: properties,
       options: options,
@@ -80,26 +87,26 @@ class Posthog {
     required String alias,
     Map<String, dynamic>? options,
   }) {
-    return getInstance(instanceName: _instanceName).alias(
+    return _posthog.alias(
       alias: alias,
       options: options,
     );
   }
 
   Future<String?> get getAnonymousId {
-    return getInstance(instanceName: _instanceName).getAnonymousId;
+    return _posthog.getAnonymousId;
   }
 
   Future<void> reset() {
-    return getInstance(instanceName: _instanceName).reset();
+    return _posthog.reset();
   }
 
   Future<void> disable() {
-    return getInstance(instanceName: _instanceName).disable();
+    return _posthog.disable();
   }
 
   Future<void> enable() {
-    return getInstance(instanceName: _instanceName).enable();
+    return _posthog.enable();
   }
 
   Future<void> debug(bool enabled) {
@@ -109,10 +116,10 @@ class Posthog {
       return Future.value();
     }
 
-    return getInstance(instanceName: _instanceName).debug(enabled);
+    return _posthog.debug(enabled);
   }
 
   Future<void> setContext(Map<String, dynamic> context) {
-    return getInstance(instanceName: _instanceName).setContext(context);
+    return _posthog.setContext(context);
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 
@@ -83,9 +81,7 @@ class MyApp extends StatelessWidget {
                 child: Text('Disable'),
                 onPressed: () async {
                   await Posthog().disable();
-                  Posthog().capture(
-                      eventName: 'This event will not be logged',
-                      properties: {});
+                  Posthog().capture(eventName: 'This event will not be logged', properties: {});
                 },
               ),
             ),
@@ -95,8 +91,7 @@ class MyApp extends StatelessWidget {
                 child: Text('Enable'),
                 onPressed: () async {
                   await Posthog().enable();
-                  Posthog().capture(
-                      eventName: 'Enabled capturing events!', properties: {});
+                  Posthog().capture(eventName: 'Enabled capturing events!', properties: {});
                 },
               ),
             ),
@@ -104,9 +99,7 @@ class MyApp extends StatelessWidget {
           ],
         ),
       ),
-      navigatorObservers: [
-        PosthogObserver(),
-      ],
+      navigatorObservers: [],
     );
   }
 }
