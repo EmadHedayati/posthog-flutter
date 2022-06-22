@@ -7,10 +7,11 @@
 @implementation PosthogFlutterPlugin
 // Contents to be appended to the context
 static NSDictionary *_appendToContextMiddleware;
-static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
+static NSMutableArray *_posthogList;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   @try {
+    _posthogList = [[NSMutableArray alloc] init];
     FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"posthogflutter"
       binaryMessenger:[registrar messenger]];
@@ -151,7 +152,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)identify:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     NSString *userId = call.arguments[@"userId"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
@@ -170,7 +171,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)capture:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     NSString *eventName = call.arguments[@"eventName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
@@ -185,7 +186,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)screen:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     NSString *screenName = call.arguments[@"screenName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
@@ -200,7 +201,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)alias:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     NSString *alias = call.arguments[@"alias"];
     NSDictionary *options = call.arguments[@"options"];
     [[_posthogList objectAtIndex: index] alias: alias];
@@ -213,7 +214,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)anonymousId:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     NSString *anonymousId = [[_posthogList objectAtIndex: index] getAnonymousId];
     result(anonymousId);
   }
@@ -224,7 +225,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)reset:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-     NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     [[_posthogList objectAtIndex: index] reset];
     result([NSNumber numberWithBool:YES]);
   }
@@ -235,7 +236,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)disable:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     [[_posthogList objectAtIndex: index] disable];
     result([NSNumber numberWithBool:YES]);
   }
@@ -246,7 +247,7 @@ static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 - (void)enable:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSNumber *index = call.arguments[@"index"];
+    int index = [call.arguments[@"index"] intValue];
     [[_posthogList objectAtIndex: index] enable];
     result([NSNumber numberWithBool:YES]);
   }
