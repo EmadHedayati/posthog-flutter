@@ -5,24 +5,28 @@ import 'package:posthog_flutter/src/posthog_platform_interface.dart';
 export 'package:posthog_flutter/src/posthog_default_options.dart';
 
 class Posthog {
-  static Map<String, Posthog>? _instances;
+  static Map<String, Posthog> _instances = <String, Posthog>{};
 
   late PosthogPlatform _posthog;
+  late int _index;
 
   factory Posthog() {
     return getInstance();
   }
 
-  Posthog._internal(PosthogPlatform posthogPlatform) {
+  Posthog._internal(PosthogPlatform posthogPlatform, int index) {
     this._posthog = posthogPlatform;
+    this._index = index;
   }
 
   static Posthog getInstance({String instanceName = '\$default_instance'}) {
-    if (_instances == null) {
-      _instances = <String, Posthog>{};
-    }
-
-    return _instances!.putIfAbsent(instanceName, () => Posthog._internal(PosthogPlatform.createNewInstance()));
+    return _instances.putIfAbsent(
+      instanceName,
+      () => Posthog._internal(
+        PosthogPlatform.createNewInstance(),
+        _instances.length,
+      ),
+    );
   }
 
   String? currentScreen;
@@ -42,6 +46,7 @@ class Posthog {
   }
 
   Future<void> identify({
+    required int index,
     required userId,
     Map<String, dynamic>? properties,
     Map<String, dynamic>? options,
@@ -50,10 +55,12 @@ class Posthog {
       userId: userId,
       properties: properties,
       options: options,
+      index: index,
     );
   }
 
   Future<void> capture({
+    required int index,
     required String eventName,
     Map<String, dynamic>? properties,
     Map<String, dynamic>? options,
@@ -65,10 +72,12 @@ class Posthog {
       eventName: eventName,
       properties: properties,
       options: options,
+      index: index,
     );
   }
 
   Future<void> screen({
+    required int index,
     required String screenName,
     Map<String, dynamic>? properties,
     Map<String, dynamic>? options,
@@ -80,46 +89,63 @@ class Posthog {
       screenName: screenName,
       properties: properties,
       options: options,
+      index: index,
     );
   }
 
   Future<void> alias({
+    required int index,
     required String alias,
     Map<String, dynamic>? options,
   }) {
     return _posthog.alias(
       alias: alias,
       options: options,
+      index: index,
     );
   }
 
-  Future<String?> get getAnonymousId {
-    return _posthog.getAnonymousId;
+  Future<String?> getAnonymousId({
+    required int index,
+  }) {
+    return _posthog.getAnonymousId(index: index);
   }
 
-  Future<void> reset() {
-    return _posthog.reset();
+  Future<void> reset({
+    required int index,
+  }) {
+    return _posthog.reset(index: index);
   }
 
-  Future<void> disable() {
-    return _posthog.disable();
+  Future<void> disable({
+    required int index,
+  }) {
+    return _posthog.disable(index: index);
   }
 
-  Future<void> enable() {
-    return _posthog.enable();
+  Future<void> enable({
+    required int index,
+  }) {
+    return _posthog.enable(index: index);
   }
 
-  Future<void> debug(bool enabled) {
+  Future<void> debug(
+    bool enabled, {
+    required int index,
+  }) {
     if (Platform.isAndroid) {
       print('Debug flag cannot be dynamically set on Android.\n'
           'Add to AndroidManifest and avoid calling this method when Platform.isAndroid.');
       return Future.value();
     }
 
-    return _posthog.debug(enabled);
+    return _posthog.debug(enabled, index: index);
   }
 
-  Future<void> setContext(Map<String, dynamic> context) {
-    return _posthog.setContext(context);
+  Future<void> setContext(
+    Map<String, dynamic> context, {
+    required int index,
+  }) {
+    return _posthog.setContext(context, index: index);
   }
 }

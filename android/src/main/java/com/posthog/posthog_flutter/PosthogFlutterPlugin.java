@@ -34,7 +34,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   private Context applicationContext;
   private MethodChannel methodChannel;
-  private PostHog posthog;
+  private List<PostHog> posthogList = new ArrayList<PostHog>();
 
   static HashMap<String, Object> appendToContextMiddleware;
 
@@ -77,9 +77,9 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
     } else if (call.method.equals("alias")) {
       this.alias(call, result);
     } else if (call.method.equals("getAnonymousId")) {
-      this.anonymousId(result);
+      this.anonymousId(call, result);
     } else if (call.method.equals("reset")) {
-      this.reset(result);
+      this.reset(call, result);
     } else if (call.method.equals("setContext")) {
       this.setContext(call, result);
     } else if (call.method.equals("disable")) {
@@ -134,7 +134,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
               }
       );
 
-      this.posthog = posthogBuilder.build();
+      this.posthogList.add(posthogBuilder.build());
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -143,10 +143,11 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   private void identify(MethodCall call, Result result) {
     try {
+      int index = call.argument("index");
       String userId = call.argument("userId");
       HashMap<String, Object> propertiesData = call.argument("properties");
       HashMap<String, Object> options = call.argument("options");
-      this.callIdentify(userId, propertiesData, options);
+      this.callIdentify(index, userId, propertiesData, options);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -154,6 +155,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   }
 
   private void callIdentify(
+    int index,
     String userId,
     HashMap<String, Object> propertiesData,
     HashMap<String, Object> optionsData
@@ -167,15 +169,16 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    this.posthog.identify(userId, properties, options);
+    this.posthogList.get(index).identify(userId, properties, options);
   }
 
   private void capture(MethodCall call, Result result) {
     try {
+      int index = call.argument("index");
       String eventName = call.argument("eventName");
       HashMap<String, Object> propertiesData = call.argument("properties");
       HashMap<String, Object> options = call.argument("options");
-      this.callCapture(eventName, propertiesData, options);
+      this.callCapture(index, eventName, propertiesData, options);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -183,6 +186,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   }
 
   private void callCapture(
+    int index,
     String eventName,
     HashMap<String, Object> propertiesData,
     HashMap<String, Object> optionsData
@@ -196,15 +200,16 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    this.posthog.capture(eventName, properties, options);
+    this.posthogList.get(index).capture(eventName, properties, options);
   }
 
   private void screen(MethodCall call, Result result) {
     try {
+      int index = call.argument("index");
       String screenName = call.argument("screenName");
       HashMap<String, Object> propertiesData = call.argument("properties");
       HashMap<String, Object> options = call.argument("options");
-      this.callScreen(screenName, propertiesData, options);
+      this.callScreen(index, screenName, propertiesData, options);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -212,6 +217,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   }
 
   private void callScreen(
+    int index,
     String screenName,
     HashMap<String, Object> propertiesData,
     HashMap<String, Object> optionsData
@@ -225,33 +231,36 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    this.posthog.screen(screenName, properties, options);
+    this.posthogList.get(index).screen(screenName, properties, options);
   }
 
   private void alias(MethodCall call, Result result) {
     try {
+      int index = call.argument("index");
       String alias = call.argument("alias");
       HashMap<String, Object> optionsData = call.argument("options");
       Options options = this.buildOptions(optionsData);
-      this.posthog.alias(alias, options);
+      this.posthogList.get(index).alias(alias, options);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
     }
   }
 
-  private void anonymousId(Result result) {
+  private void anonymousId(MethodCall call, Result result) {
     try {
-      String anonymousId = this.posthog.getAnonymousId();
+      int index = call.argument("index");
+      String anonymousId = this.posthogList.get(index).getAnonymousId();
       result.success(anonymousId);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
     }
   }
 
-  private void reset(Result result) {
+  private void reset(MethodCall call, Result result) {
     try {
-      this.posthog.reset();
+      int index = call.argument("index");
+      this.posthogList.get(index).reset();
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -260,6 +269,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   private void setContext(MethodCall call, Result result) {
     try {
+      int index = call.argument("index");
       this.appendToContextMiddleware = call.argument("context");
       result.success(true);
     } catch (Exception e) {
@@ -271,7 +281,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   // Instead, we use optOut as a proxy to achieve the same result.
   private void enable(MethodCall call, Result result) {
     try {
-      this.posthog.optOut(false);
+      int index = call.argument("index");
+      this.posthogList.get(index).optOut(false);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
@@ -282,7 +293,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   // Instead, we use optOut as a proxy to achieve the same result.
   private void disable(MethodCall call, Result result) {
     try {
-      this.posthog.optOut(true);
+      int index = call.argument("index");
+      this.posthogList.get(index).optOut(true);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);

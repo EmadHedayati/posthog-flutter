@@ -19,86 +19,14 @@ void main() {
   ///
   /// Aside from this special use case, any other context property that needs
   /// to be defined (or re-defined) can be done.
-  Posthog().setContext({
-    'device': {
-      'token': 'testing',
-    }
-  });
-
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Posthog().screen(
-      screenName: 'Example Screen',
-    );
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Posthog example app'),
-        ),
-        body: Column(
-          children: <Widget>[
-            Spacer(),
-            Center(
-              child: TextButton(
-                child: Text('CAPTURE ACTION WITH POSTHOG'),
-                onPressed: () {
-                  Posthog().capture(
-                    eventName: 'ButtonClicked',
-                    properties: {
-                      'foo': 'bar',
-                      'number': 1337,
-                      'clicked': true,
-                    },
-                  );
-                },
-              ),
-            ),
-            Spacer(),
-            Center(
-              child: TextButton(
-                child: Text('Update Context'),
-                onPressed: () {
-                  Posthog().setContext({'custom': 123});
-                },
-              ),
-            ),
-            Spacer(),
-            Center(
-              child: TextButton(
-                child: Text('Clear Context'),
-                onPressed: () {
-                  Posthog().setContext({});
-                },
-              ),
-            ),
-            Spacer(),
-            Center(
-              child: TextButton(
-                child: Text('Disable'),
-                onPressed: () async {
-                  await Posthog().disable();
-                  Posthog().capture(eventName: 'This event will not be logged', properties: {});
-                },
-              ),
-            ),
-            Spacer(),
-            Center(
-              child: TextButton(
-                child: Text('Enable'),
-                onPressed: () async {
-                  await Posthog().enable();
-                  Posthog().capture(eventName: 'Enabled capturing events!', properties: {});
-                },
-              ),
-            ),
-            Spacer(),
-          ],
-        ),
-      ),
+      home: Scaffold(),
       navigatorObservers: [],
     );
   }
