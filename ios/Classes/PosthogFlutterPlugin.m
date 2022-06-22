@@ -7,7 +7,7 @@
 @implementation PosthogFlutterPlugin
 // Contents to be appended to the context
 static NSDictionary *_appendToContextMiddleware;
-static PHGPostHog *_posthog;
+static NSMutableArray *_posthogList = [[NSMutableArray alloc] init];
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   @try {
@@ -34,13 +34,13 @@ static PHGPostHog *_posthog;
   } else if ([@"alias" isEqualToString:call.method]) {
     [self alias:call result:result];
   } else if ([@"getAnonymousId" isEqualToString:call.method]) {
-    [self anonymousId:result];
+    [self anonymousId:call result:result];
   } else if ([@"reset" isEqualToString:call.method]) {
-    [self reset:result];
+    [self reset:call result:result];
   } else if ([@"disable" isEqualToString:call.method]) {
-    [self disable:result];
+    [self disable:call result:result];
   } else if ([@"enable" isEqualToString:call.method]) {
-    [self enable:result];
+    [self enable:call result:result];
   } else if ([@"debug" isEqualToString:call.method]) {
     [self debug:call result:result];
   } else if ([@"setContext" isEqualToString:call.method]) {
@@ -138,7 +138,7 @@ static PHGPostHog *_posthog;
 
     configuration.captureApplicationLifecycleEvents = captureApplicationLifecycleEvents;
 
-    _posthog = [[PHGPostHog alloc] initWithConfiguration:configuration];
+    [_posthogList addObject: [[PHGPostHog alloc] initWithConfiguration:configuration]];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -151,10 +151,11 @@ static PHGPostHog *_posthog;
 
 - (void)identify:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
+    NSNumber *index = call.arguments[@"index"];
     NSString *userId = call.arguments[@"userId"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [_posthog identify: userId
+    [[_posthogList objectAtIndex: index] identify: userId
                       properties: properties
                      options: options];
     result([NSNumber numberWithBool:YES]);
@@ -169,10 +170,11 @@ static PHGPostHog *_posthog;
 
 - (void)capture:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
+    NSNumber *index = call.arguments[@"index"];
     NSString *eventName = call.arguments[@"eventName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [_posthog capture: eventName
+    [[_posthogList objectAtIndex: index] capture: eventName
                     properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -183,10 +185,11 @@ static PHGPostHog *_posthog;
 
 - (void)screen:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
+    NSNumber *index = call.arguments[@"index"];
     NSString *screenName = call.arguments[@"screenName"];
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
-    [_posthog screen: screenName
+    [[_posthogList objectAtIndex: index] screen: screenName
                   properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
@@ -197,9 +200,10 @@ static PHGPostHog *_posthog;
 
 - (void)alias:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
+    NSNumber *index = call.arguments[@"index"];
     NSString *alias = call.arguments[@"alias"];
     NSDictionary *options = call.arguments[@"options"];
-    [_posthog alias: alias];
+    [[_posthogList objectAtIndex: index] alias: alias];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -207,9 +211,10 @@ static PHGPostHog *_posthog;
   }
 }
 
-- (void)anonymousId:(FlutterResult)result {
+- (void)anonymousId:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    NSString *anonymousId = [_posthog getAnonymousId];
+    NSNumber *index = call.arguments[@"index"];
+    NSString *anonymousId = [[_posthogList objectAtIndex: index] getAnonymousId];
     result(anonymousId);
   }
   @catch (NSException *exception) {
@@ -217,9 +222,10 @@ static PHGPostHog *_posthog;
   }
 }
 
-- (void)reset:(FlutterResult)result {
+- (void)reset:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    [_posthog reset];
+     NSNumber *index = call.arguments[@"index"];
+    [[_posthogList objectAtIndex: index] reset];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -227,9 +233,10 @@ static PHGPostHog *_posthog;
   }
 }
 
-- (void)disable:(FlutterResult)result {
+- (void)disable:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    [_posthog disable];
+    NSNumber *index = call.arguments[@"index"];
+    [[_posthogList objectAtIndex: index] disable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
@@ -237,9 +244,10 @@ static PHGPostHog *_posthog;
   }
 }
 
-- (void)enable:(FlutterResult)result {
+- (void)enable:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
-    [_posthog enable];
+    NSNumber *index = call.arguments[@"index"];
+    [[_posthogList objectAtIndex: index] enable];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
