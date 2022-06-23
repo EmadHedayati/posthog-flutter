@@ -75,12 +75,14 @@ class Posthog {
     if (screenName != '/') {
       this.currentScreen = screenName;
     }
-    return _posthogPlatform.screen(
-      screenName: screenName,
-      properties: properties,
-      options: options,
-      index: _index,
-    );
+    // todo: this causes a bug on flutter build apk --release, java.lang.NoSuchMethodException: e.g.a.q.<init> [interface java.util.Map]
+    return Future.value();
+    // return _posthogPlatform.screen(
+    //   screenName: screenName,
+    //   properties: properties,
+    //   options: options,
+    //   index: _index,
+    // );
   }
 
   Future<void> alias({
