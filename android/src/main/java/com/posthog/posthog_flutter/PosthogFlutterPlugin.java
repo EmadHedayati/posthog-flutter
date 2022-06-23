@@ -101,7 +101,6 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       Boolean debug = call.argument("debug");
 
       PostHog.Builder posthogBuilder = new PostHog.Builder(applicationContext, writeKey, posthogHost);
-      posthogBuilder.tag(writeKey);
 
       if (captureApplicationLifecycleEvents) {
         // Enable this to record certain application events automatically
@@ -138,6 +137,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
               }
       );
 
+      posthogBuilder.tag(writeKey + this.posthogList.size());
       this.posthogList.add(posthogBuilder.build());
       result.success(true);
     } catch (Exception e) {
