@@ -101,6 +101,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       Boolean debug = call.argument("debug");
 
       PostHog.Builder posthogBuilder = new PostHog.Builder(applicationContext, writeKey, posthogHost);
+      posthogBuilder.tag(writeKey);
+
       if (captureApplicationLifecycleEvents) {
         // Enable this to record certain application events automatically
         posthogBuilder.captureApplicationLifecycleEvents();
