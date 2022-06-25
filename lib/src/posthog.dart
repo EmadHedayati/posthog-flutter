@@ -10,6 +10,7 @@ class Posthog {
   static PosthogPlatform _posthogPlatform = PosthogPlatform.createNewInstance();
 
   late int _index;
+  bool _debug = false;
 
   Posthog._internal(int index) {
     this._index = index;
@@ -30,6 +31,7 @@ class Posthog {
     bool captureApplicationLifecycleEvents = false,
     bool debug = false,
   }) {
+    this._debug = debug;
     return _posthogPlatform.init(
       writeKey: writeKey,
       posthogHost: posthogHost,
@@ -114,7 +116,7 @@ class Posthog {
 
   Future<void> debug(bool enabled) {
     if (Platform.isAndroid) {
-      print('Debug flag cannot be dynamically set on Android.');
+      if (_debug) print('Debug flag cannot be dynamically set on Android.');
       return Future.value();
     }
 
