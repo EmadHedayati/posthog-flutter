@@ -312,7 +312,6 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       int index = call.argument("index");
       String tag = call.argument("tag");
       this.posthogList.get(index).shutdown();
-      PostHog.INSTANCES.remove(tag);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
