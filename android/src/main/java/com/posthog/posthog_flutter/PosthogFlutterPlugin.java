@@ -310,7 +310,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
   private void shutdown(MethodCall call, Result result) {
     try {
       int index = call.argument("index");
-      this.posthogList.get(index).shutdown(true);
+      this.posthogList.get(index).shutdown();
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
