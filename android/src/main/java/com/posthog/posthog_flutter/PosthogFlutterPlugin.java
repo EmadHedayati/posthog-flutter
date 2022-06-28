@@ -99,6 +99,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
     try {
       String writeKey = call.argument("writeKey");
       String posthogHost = call.argument("posthogHost");
+      String tag = call.argument("tag");
       Boolean captureApplicationLifecycleEvents = call.argument("captureApplicationLifecycleEvents");
       Boolean debug = call.argument("debug");
 
@@ -139,7 +140,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
               }
       );
 
-      posthogBuilder.tag(writeKey + this.posthogList.size());
+      posthogBuilder.tag(tag);
       this.posthogList.add(posthogBuilder.build());
       result.success(true);
     } catch (Exception e) {

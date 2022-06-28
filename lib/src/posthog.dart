@@ -30,6 +30,7 @@ class Posthog {
   Future<void> init({
     required String writeKey,
     required String posthogHost,
+    required String tag,
     bool captureApplicationLifecycleEvents = false,
     bool debug = false,
   }) {
@@ -37,6 +38,7 @@ class Posthog {
     return _posthogPlatform.init(
       writeKey: writeKey,
       posthogHost: posthogHost,
+      tag: tag,
       captureApplicationLifecycleEvents: captureApplicationLifecycleEvents,
       debug: debug,
     );

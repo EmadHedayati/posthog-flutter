@@ -13,6 +13,7 @@ abstract class PosthogPlatform {
   Future<void> init({
     required String writeKey,
     required String posthogHost,
+    required String tag,
     bool captureApplicationLifecycleEvents = false,
     bool debug = false,
   }) {

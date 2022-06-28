@@ -8,6 +8,7 @@ class PosthogMethodChannel extends PosthogPlatform {
   Future<void> init({
     required String writeKey,
     required String posthogHost,
+    required String tag,
     bool captureApplicationLifecycleEvents = false,
     bool debug = false,
   }) async {
@@ -15,6 +16,7 @@ class PosthogMethodChannel extends PosthogPlatform {
       await _channel.invokeMethod('init', {
         'writeKey': writeKey,
         'posthogHost': posthogHost,
+        'tag': tag,
         'captureApplicationLifecycleEvents': captureApplicationLifecycleEvents,
         'debug': debug,
       });
