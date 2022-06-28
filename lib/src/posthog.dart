@@ -10,16 +10,18 @@ class Posthog {
   static PosthogPlatform _posthogPlatform = PosthogPlatform.createNewInstance();
 
   late int _index;
+  late String _tag;
   bool _debug = false;
 
-  Posthog._internal(int index) {
+  Posthog._internal(int index, String tag) {
     this._index = index;
+    this._tag = tag;
   }
 
   static Posthog getInstance({String instanceName = '\$default_instance'}) {
     return _instances.putIfAbsent(
       instanceName,
-      () => Posthog._internal(_instances.length),
+      () => Posthog._internal(_instances.length, instanceName),
     );
   }
 
@@ -132,6 +134,6 @@ class Posthog {
       if (_debug) print("Posthog instances on ios can not be shutdown.");
       return Future.value();
     }
-    return _posthogPlatform.shutdown(index: _index);
+    return _posthogPlatform.shutdown(index: _index, tag: _tag);
   }
 }

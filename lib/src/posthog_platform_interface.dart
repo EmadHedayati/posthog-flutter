@@ -94,6 +94,7 @@ abstract class PosthogPlatform {
 
   Future<void> shutdown({
     required int index,
+    required String tag,
   }) {
     throw UnimplementedError('shutdown() has not been implemented.');
   }
