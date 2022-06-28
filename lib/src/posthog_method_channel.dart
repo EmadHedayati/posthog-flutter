@@ -164,4 +164,16 @@ class PosthogMethodChannel extends PosthogPlatform {
       print(exception);
     }
   }
+
+  Future<void> shutdown({
+    required int index,
+  }) async {
+    try {
+      await _channel.invokeMethod('shutdown', {
+        'index': index,
+      });
+    } on PlatformException catch (exception) {
+      print(exception);
+    }
+  }
 }

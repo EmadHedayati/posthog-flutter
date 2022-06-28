@@ -126,4 +126,12 @@ class Posthog {
   Future<void> setContext(Map<String, dynamic> context) {
     return _posthogPlatform.setContext(context, index: _index);
   }
+
+  Future<void> shutdown() {
+    if (Platform.isIOS) {
+      if (_debug) print("Posthog instances on ios can not be shutdown.");
+      return Future.value();
+    }
+    return _posthogPlatform.shutdown(index: _index);
+  }
 }

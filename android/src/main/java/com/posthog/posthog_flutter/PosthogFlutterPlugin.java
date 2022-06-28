@@ -88,6 +88,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       this.disable(call, result);
     } else if (call.method.equals("enable")) {
       this.enable(call, result);
+    } else if (call.method.equals("shutdown")) {
+      this.shutdown(call, result);
     } else {
       result.notImplemented();
     }
@@ -299,6 +301,16 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
     try {
       int index = call.argument("index");
       this.posthogList.get(index).optOut(true);
+      result.success(true);
+    } catch (Exception e) {
+      result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
+    }
+  }
+
+  private void shutdown(MethodCall call, Result result) {
+    try {
+      int index = call.argument("index");
+      this.posthogList.get(index).shutdown(true);
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);

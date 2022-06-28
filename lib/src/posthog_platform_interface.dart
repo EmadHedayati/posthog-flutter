@@ -91,4 +91,10 @@ abstract class PosthogPlatform {
   }) {
     throw UnimplementedError('setContext() has not been implemented.');
   }
+
+  Future<void> shutdown({
+    required int index,
+  }) {
+    throw UnimplementedError('shutdown() has not been implemented.');
+  }
 }
