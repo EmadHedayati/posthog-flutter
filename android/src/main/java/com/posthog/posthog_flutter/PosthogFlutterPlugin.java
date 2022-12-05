@@ -82,6 +82,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       this.anonymousId(call, result);
     } else if (call.method.equals("reset")) {
       this.reset(call, result);
+    } else if (call.method.equals("flush")) {
+      this.flush(call, result);
     } else if (call.method.equals("setContext")) {
       this.setContext(call, result);
     } else if (call.method.equals("disable")) {
@@ -268,6 +270,16 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
     try {
       int index = call.argument("index");
       this.posthogList.get(index).reset();
+      result.success(true);
+    } catch (Exception e) {
+      result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
+    }
+  }
+
+  private void flush(MethodCall call, Result result) {
+    try {
+      int index = call.argument("index");
+      this.posthogList.get(index).flush();
       result.success(true);
     } catch (Exception e) {
       result.error("PosthogFlutterException", e.getLocalizedMessage(), null);

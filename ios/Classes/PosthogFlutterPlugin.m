@@ -38,6 +38,8 @@ static NSMutableArray *_posthogList;
     [self anonymousId:call result:result];
   } else if ([@"reset" isEqualToString:call.method]) {
     [self reset:call result:result];
+  } else if ([@"flush" isEqualToString:call.method]) {
+    [self flush:call result:result];
   } else if ([@"disable" isEqualToString:call.method]) {
     [self disable:call result:result];
   } else if ([@"enable" isEqualToString:call.method]) {
@@ -227,6 +229,17 @@ static NSMutableArray *_posthogList;
   @try {
     int index = [call.arguments[@"index"] intValue];
     [[_posthogList objectAtIndex: index] reset];
+    result([NSNumber numberWithBool:YES]);
+  }
+  @catch (NSException *exception) {
+    result([FlutterError errorWithCode:@"PosthogFlutterException" message:[exception reason] details: nil]);
+  }
+}
+
+- (void)flush:(FlutterMethodCall*)call result:(FlutterResult)result {
+  @try {
+    int index = [call.arguments[@"index"] intValue];
+    [[_posthogList objectAtIndex: index] flush];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {
