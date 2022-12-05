@@ -110,6 +110,10 @@ class Posthog {
     return _posthogPlatform.reset(index: _index);
   }
 
+  Future<void> flush() {
+    return _posthogPlatform.flush(index: _index);
+  }
+
   Future<void> disable() {
     return _posthogPlatform.disable(index: _index);
   }

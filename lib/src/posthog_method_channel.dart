@@ -115,6 +115,18 @@ class PosthogMethodChannel extends PosthogPlatform {
     }
   }
 
+  Future<void> flush({
+    required int index,
+  }) async {
+    try {
+      await _channel.invokeMethod('flush', {
+        'index': index,
+      });
+    } on PlatformException catch (exception) {
+      print(exception);
+    }
+  }
+
   Future<void> disable({
     required int index,
   }) async {

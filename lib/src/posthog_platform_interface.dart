@@ -67,6 +67,12 @@ abstract class PosthogPlatform {
     throw UnimplementedError('reset() has not been implemented.');
   }
 
+  Future<void> flush({
+    required int index,
+  }) {
+    throw UnimplementedError('flush() has not been implemented.');
+  }
+
   Future<void> disable({
     required int index,
   }) {
