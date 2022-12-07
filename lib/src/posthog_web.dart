@@ -29,6 +29,19 @@ class PosthogWeb {
           JsObject.jsify(call.arguments['properties']),
         ]);
         break;
+      case 'capture':
+        analytics.callMethod('capture', [
+          call.arguments['eventName'],
+          JsObject.jsify(call.arguments['properties']),
+        ]);
+        break;
+      case 'group':
+        analytics.callMethod('group', [
+          call.arguments['groupType'],
+          call.arguments['groupKey'],
+          JsObject.jsify(call.arguments['properties']),
+        ]);
+        break;
       case 'screen':
         analytics.callMethod('capture', [
           call.arguments['screenName'],

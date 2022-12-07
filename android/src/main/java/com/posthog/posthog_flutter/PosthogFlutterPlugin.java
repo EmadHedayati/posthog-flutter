@@ -74,6 +74,8 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       this.identify(call, result);
     } else if (call.method.equals("capture")) {
       this.capture(call, result);
+    } else if (call.method.equals("group")) {
+      this.group(call, result);
     } else if (call.method.equals("screen")) {
       this.screen(call, result);
     } else if (call.method.equals("alias")) {
@@ -210,6 +212,36 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
     }
 
     this.posthogList.get(index).capture(eventName, properties, options);
+  }
+
+  private void group(MethodCall call, Result result) {
+    try {
+      int index = call.argument("index");
+      String groupType = call.argument("groupType");
+      String groupKey = call.argument("groupKey");
+      HashMap<String, Object> propertiesData = call.argument("properties");
+      this.callGroup(index, groupType, groupKey, propertiesData);
+      result.success(true);
+    } catch (Exception e) {
+      result.error("PosthogFlutterException", e.getLocalizedMessage(), null);
+    }
+  }
+
+  private void callGroup(
+          int index,
+          String groupType,
+          String groupKey,
+          HashMap<String, Object> propertiesData
+  ) {
+    Properties properties = new Properties();
+
+    for(Map.Entry<String, Object> property : propertiesData.entrySet()) {
+      String key = property.getKey();
+      Object value = property.getValue();
+      properties.putValue(key, value);
+    }
+
+    this.posthogList.get(index).group(groupType, groupKey, properties);
   }
 
   private void screen(MethodCall call, Result result) {

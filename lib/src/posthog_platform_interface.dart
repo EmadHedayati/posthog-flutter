@@ -38,6 +38,15 @@ abstract class PosthogPlatform {
     throw UnimplementedError('capture() has not been implemented.');
   }
 
+  Future<void> group({
+    required int index,
+    required String groupType,
+    required String groupKey,
+    Map<String, dynamic>? properties,
+  }) {
+    throw UnimplementedError('group() has not been implemented.');
+  }
+
   Future<void> screen({
     required int index,
     required String screenName,

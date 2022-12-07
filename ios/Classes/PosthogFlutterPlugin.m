@@ -30,6 +30,8 @@ static NSMutableArray *_posthogList;
     [self identify:call result:result];
   } else if ([@"capture" isEqualToString:call.method]) {
     [self capture:call result:result];
+  } else if ([@"group" isEqualToString:call.method]) {
+    [self group:call result:result];
   } else if ([@"screen" isEqualToString:call.method]) {
     [self screen:call result:result];
   } else if ([@"alias" isEqualToString:call.method]) {
@@ -178,6 +180,22 @@ static NSMutableArray *_posthogList;
     NSDictionary *properties = call.arguments[@"properties"];
     NSDictionary *options = call.arguments[@"options"];
     [[_posthogList objectAtIndex: index] capture: eventName
+                    properties: properties];
+    result([NSNumber numberWithBool:YES]);
+  }
+  @catch (NSException *exception) {
+    result([FlutterError errorWithCode:@"PosthogFlutterException" message:[exception reason] details: nil]);
+  }
+}
+
+- (void)group:(FlutterMethodCall*)call result:(FlutterResult)result {
+  @try {
+    int index = [call.arguments[@"index"] intValue];
+    NSString *groupType = call.arguments[@"groupType"];
+    NSString *groupKey = call.arguments[@"groupKey"];
+    NSDictionary *properties = call.arguments[@"properties"];
+    [[_posthogList objectAtIndex: index] group: groupType
+                    groupKey: groupKey
                     properties: properties];
     result([NSNumber numberWithBool:YES]);
   }

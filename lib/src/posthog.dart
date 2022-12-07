@@ -73,6 +73,19 @@ class Posthog {
     );
   }
 
+  Future<void> group({
+    required String groupType,
+    required String groupKey,
+    Map<String, dynamic>? properties,
+  }) {
+    return _posthogPlatform.group(
+      groupType: groupType,
+      groupKey: groupKey,
+      properties: properties,
+      index: _index,
+    );
+  }
+
   Future<void> screen({
     required String screenName,
     Map<String, dynamic>? properties,
