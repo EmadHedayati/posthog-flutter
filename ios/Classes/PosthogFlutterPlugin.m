@@ -194,9 +194,9 @@ static NSMutableArray *_posthogList;
     NSString *groupType = call.arguments[@"groupType"];
     NSString *groupKey = call.arguments[@"groupKey"];
     NSDictionary *properties = call.arguments[@"properties"];
-    [[_posthogList objectAtIndex: index] group: groupType
-                    groupKey: groupKey
-                    properties: properties];
+    //[[_posthogList objectAtIndex: index] group: groupType
+    //                groupKey: groupKey
+    //                properties: properties];
     result([NSNumber numberWithBool:YES]);
   }
   @catch (NSException *exception) {

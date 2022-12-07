@@ -241,7 +241,7 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
       properties.putValue(key, value);
     }
 
-    this.posthogList.get(index).group(groupType, groupKey, properties);
+//    this.posthogList.get(index).group(groupType, groupKey, properties);
   }
 
   private void screen(MethodCall call, Result result) {
