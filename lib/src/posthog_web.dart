@@ -18,19 +18,26 @@ class PosthogWeb {
 
   Future<dynamic> handleMethodCall(MethodCall call) async {
     if (call.method == "init") {
+      print("inside");
+
       final analytics = JsObject.fromBrowserObject(context['posthog']);
+      print(analytics);
 
       dynamic _instance = analytics.callMethod("init", [
         call.arguments["writeKey"],
         {"api_host": call.arguments["posthogHost"]},
         call.arguments["tag"],
       ]);
+      print(_instance);
 
       _instances.add(_instance);
+      print(_instances.length);
       return;
     }
 
     final instance = _instances[call.arguments["index"]];
+    print("outside");
+    print(instance);
 
     switch (call.method) {
       case 'identify':
