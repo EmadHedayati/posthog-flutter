@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart' show Registrar;
 
 class PosthogWeb {
+  static List<dynamic> _instances = [];
+
   static void registerWith(Registrar registrar) {
     final MethodChannel channel = MethodChannel(
       'posthogflutter',
@@ -15,52 +17,60 @@ class PosthogWeb {
   }
 
   Future<dynamic> handleMethodCall(MethodCall call) async {
-    final analytics = JsObject.fromBrowserObject(context['posthog']);
+    if (call.method == "init") {
+      final analytics = JsObject.fromBrowserObject(context['posthog']);
+
+      dynamic _instance = analytics.callMethod("init", [
+        call.arguments["writeKey"],
+        {"api_host": call.arguments["posthogHost"]},
+        call.arguments["tag"],
+      ]);
+
+      _instances.add(_instance);
+      return;
+    }
+
+    final instance = _instances[call.arguments["index"]];
+
     switch (call.method) {
       case 'identify':
-        analytics.callMethod('identify', [
+        instance.callMethod('identify', [
           call.arguments['userId'],
           JsObject.jsify(call.arguments['properties']),
         ]);
         break;
       case 'capture':
-        analytics.callMethod('capture', [
-          call.arguments['eventName'],
-          JsObject.jsify(call.arguments['properties']),
-        ]);
-        break;
-      case 'capture':
-        analytics.callMethod('capture', [
+        instance.callMethod('capture', [
           call.arguments['eventName'],
           JsObject.jsify(call.arguments['properties']),
         ]);
         break;
       case 'group':
-        analytics.callMethod('group', [
+        instance.callMethod('group', [
           call.arguments['groupType'],
           call.arguments['groupKey'],
           JsObject.jsify(call.arguments['properties']),
         ]);
         break;
       case 'screen':
-        analytics.callMethod('capture', [
+        instance.callMethod('capture', [
           call.arguments['screenName'],
           JsObject.jsify(call.arguments['properties']),
         ]);
         break;
       case 'alias':
-        analytics.callMethod('alias', [
+        instance.callMethod('alias', [
           call.arguments['alias'],
         ]);
         break;
       case 'getAnonymousId':
-        final anonymousId = analytics.callMethod('get_distinct_id');
+        final anonymousId = instance.callMethod('get_distinct_id');
         return anonymousId;
       case 'reset':
-        analytics.callMethod('reset');
+        instance.callMethod('reset');
         break;
       case 'debug':
-        analytics.callMethod('debug', [
+        instance.callMethod('debug', [
           call.arguments['debug'],
         ]);
         break;
