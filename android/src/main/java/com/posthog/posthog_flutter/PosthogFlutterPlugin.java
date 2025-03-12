@@ -40,11 +40,11 @@ public class PosthogFlutterPlugin implements MethodCallHandler, FlutterPlugin {
 
   static HashMap<String, Object> appendToContextMiddleware;
 
-  /** Plugin registration. */
-  public static void registerWith(PluginRegistry.Registrar registrar) {
-    final PosthogFlutterPlugin instance = new PosthogFlutterPlugin();
-    instance.setupChannels(registrar.context(), registrar.messenger());
-  }
+//  /** Plugin registration. */
+//  public static void registerWith(PluginRegistry.Registrar registrar) {
+//    final PosthogFlutterPlugin instance = new PosthogFlutterPlugin();
+//    instance.setupChannels(registrar.context(), registrar.messenger());
+//  }
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
